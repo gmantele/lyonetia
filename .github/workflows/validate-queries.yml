@@ -32,8 +32,13 @@ jobs:
         build-root-directory: src/adql-validator
         arguments           : installDist
     
+    - uses: actions/checkout@v2
+      with:
+        repository: ${{ github.repository }}.wiki
+        path      : wiki/
+    
     - name : Run ADQL validation queries
-      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > wiki/pullrequests/1.md
+      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > wiki/pullrequests/0.md
     
     - name: Push validation report
       uses: Andrew-Chen-Wang/github-wiki-action@v2
