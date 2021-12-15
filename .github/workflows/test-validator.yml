@@ -1,0 +1,33 @@
+name: ADQL Validation
+
+on:
+  push:
+    branches: [ master, adql-validator ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    
+    env:
+      VALIDATOR_NAME  : adql-validator
+      VALIDATOR_PATH  : ${GITHUB_WORKSPACE}/src/${VALIDATOR_NAME}
+
+    steps:
+    
+    - uses: actions/checkout@v2
+    
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    
+    - name: Test the ADQL Validator
+      uses: gradle/gradle-build-action@v2.0.1
+      with:
+        build-root-directory: ${VALIDATOR_PATH}
+        arguments           : test
