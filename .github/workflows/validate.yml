@@ -26,7 +26,7 @@ jobs:
       uses: gradle/gradle-build-action@v2.0.1
       with:
         build-root-directory: src/adql-validator
-        arguments           : build
+        arguments           : installDist
     
     - name: Test the ADQL Validator
       uses: gradle/gradle-build-action@v2.0.1
@@ -34,8 +34,6 @@ jobs:
         build-root-directory: src/adql-validator
         arguments           : test
     
-    - name: Run ADQL validation queries
-      uses: gradle/gradle-build-action@v2.0.1
-      with:
-        build-root-directory: src/adql-validator
-        arguments           : run --args="../adql/ivoa"
+    - name : Run ADQL validation queries
+      run  : ./build/install/bin/adql-validator -r -f markdown ../adql/ivoa
+      shell: bash
