@@ -15,7 +15,7 @@ jobs:
     env:
       VALIDATOR_NAME  : adql-validator
       BUILD_PATH      : src/${VALIDATOR_NAME}
-      VALIDATOR_SCRIPT: ${GITHUB_WORKSPACE}/${VALIDATOR_PATH}/build/install/${VALIDATOR_NAME}/bin/${VALIDATOR_NAME}
+      VALIDATOR_SCRIPT: ${GITHUB_WORKSPACE}/${BUILD_PATH}/build/install/${VALIDATOR_NAME}/bin/${VALIDATOR_NAME}
       QUERIES_PATH    : ${GITHUB_WORKSPACE}/src/adql/ivoa
 
     steps:
