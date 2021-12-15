@@ -29,5 +29,5 @@ jobs:
     - name: Test the ADQL Validator
       uses: gradle/gradle-build-action@v2.0.1
       with:
-        build-root-directory: ${env.BUILD_PATH}
+        build-root-directory: ${{env.BUILD_PATH}}
         arguments           : test
