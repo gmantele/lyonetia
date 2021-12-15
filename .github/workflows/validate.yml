@@ -38,4 +38,4 @@ jobs:
       uses: gradle/gradle-build-action@v2.0.1
       with:
         build-root-directory: src/adql-validator
-        arguments           : run --args="--help"
+        arguments           : run --args="-r ../adql"
