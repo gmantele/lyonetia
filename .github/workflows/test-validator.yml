@@ -14,7 +14,7 @@ jobs:
     
     env:
       VALIDATOR_NAME: adql-validator
-      BUILD_PATH    : src/${env.VALIDATOR_NAME}
+      BUILD_PATH    : src/${VALIDATOR_NAME}
 
     steps:
     
