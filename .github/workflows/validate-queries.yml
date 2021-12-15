@@ -11,6 +11,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    
+    env:
+      VALIDATOR_NAME  : adql-validator
+      VALIDATOR_PATH  : ${GITHUB_WORKSPACE}/src/${VALIDATOR_NAME}
+      VALIDATOR_SCRIPT: ${VALIDATOR_PATH}/build/install/${VALIDATOR_NAME}/bin/${VALIDATOR_NAME}
+      QUERIES_PATH    : ${GITHUB_WORKSPACE}/src/adql/ivoa
 
     steps:
     
@@ -25,15 +31,9 @@ jobs:
     - name: Build the ADQL Validator
       uses: gradle/gradle-build-action@v2.0.1
       with:
-        build-root-directory: src/adql-validator
+        build-root-directory: ${VALIDATOR_PATH}
         arguments           : installDist
     
-    - name: Test the ADQL Validator
-      uses: gradle/gradle-build-action@v2.0.1
-      with:
-        build-root-directory: src/adql-validator
-        arguments           : test
-    
     - name : Run ADQL validation queries
-      run  : ${GITHUB_WORKSPACE}/src/adql-validator/build/install/adql-validator/bin/adql-validator -r -f markdown ${GITHUB_WORKSPACE}/src/adql/ivoa
+      run  : ${VALIDATOR_SCRIPT} -r -f markdown ${QUERIES_PATH}
       shell: bash
