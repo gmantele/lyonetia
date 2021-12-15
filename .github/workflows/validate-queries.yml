@@ -18,7 +18,14 @@ jobs:
 
     steps:
     
-    - uses: actions/checkout@v2
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+    
+    - name: Checkout the wiki
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ github.repository }}.wiki
+        path      : wiki/
     
     - name: Set up JDK 8
       uses: actions/setup-java@v2
@@ -32,21 +39,15 @@ jobs:
         build-root-directory: src/adql-validator
         arguments           : installDist
     
-    - uses: actions/checkout@v2
-      with:
-        repository: ${{ github.repository }}.wiki
-        path      : wiki/
-    
     - name : Run ADQL validation queries
       run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > $OUTPUT_FILE
       env:
-        OUTPUT_FILE: wiki/${{ github.event.number == 0 && 'master' ||  format('pr-{0}', github.event.number) }}.md
+        OUTPUT_FILE: wiki/${{ github.event.number == 0 && 'master' ||  format('pr-#{0}', github.event.number) }}.md
     
     - name: Push validation report
       uses: Andrew-Chen-Wang/github-wiki-action@v2
       env:
-        # Make sure you have that / at the end. We use rsync 
-        # WIKI_DIR's default is wiki/
+        # Make sure you have that / at the end.
         WIKI_DIR: wiki/
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_MAIL: gmantelet@astro.unistra.fr
