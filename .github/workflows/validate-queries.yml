@@ -33,5 +33,15 @@ jobs:
         arguments           : installDist
     
     - name : Run ADQL validation queries
-      run  : ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}}
-      shell: bash
+      run  : ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > wiki/pullrequests/${{ github.event.number }}.md
+    
+    - name: Push validation report
+      uses: Andrew-Chen-Wang/github-wiki-action@v2
+      env:
+        # Make sure you have that / at the end. We use rsync 
+        # WIKI_DIR's default is wiki/
+        WIKI_DIR: wiki/
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_MAIL: ${{ secrets.YOUR_EMAIL }}
+        GH_NAME: ${{ github.repository_owner }}
+        #EXCLUDED_FILES: "a/ b.md"
