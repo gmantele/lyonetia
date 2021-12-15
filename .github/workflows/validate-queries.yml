@@ -39,7 +39,7 @@ jobs:
         arguments           : installDist
     
     - name : Run ADQL validation queries
-      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > $OUTPUT_FILE
+      run  : ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > $OUTPUT_FILE
       env:
         OUTPUT_FILE: wiki/${{ github.event.number == 0 && 'Master' ||  format('PR#{0}', github.event.number) }}.md
     
