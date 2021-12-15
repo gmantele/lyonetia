@@ -33,7 +33,7 @@ jobs:
         arguments           : installDist
     
     - name : Run ADQL validation queries
-      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > wiki/pullrequests/0.md
+      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > wiki/pullrequests/1.md
     
     - name: Push validation report
       uses: Andrew-Chen-Wang/github-wiki-action@v2
