@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      VALIDATOR_NAME  : adql-validator
-      VALIDATOR_PATH  : ${GITHUB_WORKSPACE}/src/${VALIDATOR_NAME}
+      VALIDATOR_NAME: adql-validator
+      BUILD_PATH    : src/${VALIDATOR_NAME}
 
     steps:
     
@@ -29,5 +29,5 @@ jobs:
     - name: Test the ADQL Validator
       uses: gradle/gradle-build-action@v2.0.1
       with:
-        build-root-directory: ${VALIDATOR_PATH}
+        build-root-directory: ${BUILD_PATH}
         arguments           : test
