@@ -35,5 +35,5 @@ jobs:
         arguments           : test
     
     - name : Run ADQL validation queries
-      run  : ./build/install/bin/adql-validator -r -f markdown ../adql/ivoa
+      run  : ./build/install/adql-validator/bin/adql-validator -r -f markdown ../adql/ivoa
       shell: bash
