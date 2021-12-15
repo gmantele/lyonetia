@@ -35,5 +35,5 @@ jobs:
         arguments           : test
     
     - name : Run ADQL validation queries
-      run  : ${GITHUB_WORKSPACE}src/adql-validator/build/install/adql-validator/bin/adql-validator -r -f markdown ${GITHUB_WORKSPACE}/src/adql/ivoa
+      run  : ${GITHUB_WORKSPACE}/src/adql-validator/build/install/adql-validator/bin/adql-validator -r -f markdown ${GITHUB_WORKSPACE}/src/adql/ivoa
       shell: bash
