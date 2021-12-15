@@ -1,4 +1,4 @@
-name: ADQL Validation
+name: Validator test
 
 on:
   push:
