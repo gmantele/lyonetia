@@ -2,9 +2,8 @@ name: ADQL Validation
 
 on:
   push:
-    branches: [ master, adql-validator ]
-  pull_request:
     branches: [ master ]
+  pull_request:
 
 jobs:
 
