@@ -38,7 +38,9 @@ jobs:
         path      : wiki/
     
     - name : Run ADQL validation queries
-      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > wiki/pullrequests/0.md
+      run  : mkdir -p wiki/pullrequests ; ${{env.VALIDATOR_SCRIPT}} -r -f markdown ${{env.QUERIES_PATH}} > $OUTPUT_FILE
+      env:
+        OUTPUT_FILE: wiki/${{ github.event.number == 0 && 'master' ||  format('pr-{0}', github.event.number) }}.md
     
     - name: Push validation report
       uses: Andrew-Chen-Wang/github-wiki-action@v2
