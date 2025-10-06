@@ -1,55 +1,59 @@
 package cds.adql.validation.query;
 
-import adql.parser.grammar.ParseException;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UDFTest {
 
     @Test
-    void setForm_NULL() {
-        final UDF udf = new UDF();
-        assertDoesNotThrow(() -> udf.setForm(null));
-        assertNull(udf.getForm());
-        assertNull(udf.getFeature());
+    void getForm_ShouldSucceed_WhenOnlyAName(){
+        // Given + When:
+        final UDF udf = new UDF("foo");
+
+        // Then:
+        assertEquals("foo()", udf.getForm());
     }
 
     @Test
-    void setForm_Empty(){
-        final UDF udf = new UDF();
-        for(String str : new String[]{"", " ", "\t", "    \t  \n  "}) {
-            assertDoesNotThrow(() -> udf.setForm(str));
-            assertNull(udf.getForm());
-            assertNull(udf.getFeature());
-        }
+    void getForm_ShouldSucceed_WhenNameAndReturnType(){
+        // Given + When:
+        final UDF udf = new UDF("foo", "varchar");
+
+        // Then:
+        assertEquals("foo() -> VARCHAR", udf.getForm());
     }
 
     @Test
-    void setForm_IncorrectFormat(){
-        final UDF udf = new UDF();
-        final ParseException pe = assertThrows(ParseException.class, () -> udf.setForm("toto"));
-        assertEquals("Wrong function definition syntax! Expected syntax: \"<regular_identifier>(<parameters>?) <return_type>?\", where <regular_identifier>=\"[a-zA-Z]+[a-zA-Z0-9_]*\", <return_type>=\" -> <type_name>\", <parameters>=\"(<regular_identifier> <type_name> (, <regular_identifier> <type_name>)*)\", <type_name> should be one of the types described in the UPLOAD section of the TAP documentation. Examples of good syntax: \"foo()\", \"foo() -> VARCHAR\", \"foo(param INTEGER)\", \"foo(param1 INTEGER, param2 DOUBLE) -> DOUBLE\"", pe.getMessage());
-        assertNull(udf.getForm());
-        assertNull(udf.getFeature());
+    void getForm_ShouldSucceed_WhenNameAndParameters(){
+        // Given + When:
+        final UDFParameter param1 = new UDFParameter("param1", "double");
+        final UDFParameter param2 = new UDFParameter("param2", "integer");
+        final UDF udf = new UDF("foo", null, param1, param2);
+
+        // Then:
+        assertEquals("foo(param1 DOUBLE, param2 INTEGER)", udf.getForm());
     }
 
     @Test
-    void setForm_CorrectFormat(){
-        final UDF udf = new UDF();
-        final String FORM = "ivo_healpix_index(hpxOrder INTEGER, long REAL, lat REAL) -> BIGINT";
-        assertDoesNotThrow(() -> udf.setForm(FORM));
-        assertEquals(FORM, udf.getForm());
-        assertNotNull(udf.getFeature());
-        assertEquals(FORM, udf.getFeature().form);
+    void getForm_ShouldSucceed_WhenFullDefinition(){
+        // Given + When:
+        final UDFParameter param1 = new UDFParameter("param1", "double");
+        final UDFParameter param2 = new UDFParameter("param2", "integer");
+        final UDF udf = new UDF("foo", "Varchar", param1, param2);
+
+        // Then:
+        assertEquals("foo(param1 DOUBLE, param2 INTEGER) -> VARCHAR", udf.getForm());
     }
 
     @Test
-    void setForm_Duplicated_Space_Characters(){
-        final UDF udf = new UDF();
-        final String EXPECTED_FORM = "ivo_healpix_index(hpxOrder INTEGER, long REAL, lat REAL) -> BIGINT";
-        final String FORM = "  \t ivo_healpix_index(hpxOrder   INTEGER, \t long REAL,  \n\t lat REAL)    \n\t->    BIGINT  ";
-        assertDoesNotThrow(() -> udf.setForm(FORM));
-        assertEquals(EXPECTED_FORM, udf.getForm());
+    void getForm_ShouldSucceed_WhenFullDefinitionWithUselessSpaces(){
+        // Given + When:
+        final UDFParameter param1 = new UDFParameter("param1  ", "double ");
+        final UDFParameter param2 = new UDFParameter("  param2", " integer");
+        final UDF udf = new UDF("   foo  ", "  VarChar ", param1, param2);
+
+        // Then:
+        assertEquals("foo(param1 DOUBLE, param2 INTEGER) -> VARCHAR", udf.getForm());
     }
 }

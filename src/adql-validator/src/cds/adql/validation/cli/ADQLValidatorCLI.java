@@ -1,6 +1,8 @@
-package cds.adql.validation;
+package cds.adql.validation.cli;
 
-import cds.adql.validation.jcommander.CustomUsageFormatter;
+import cds.adql.validation.ADQLValidator;
+import cds.adql.validation.ValidationException;
+import cds.adql.validation.cli.jcommander.CustomUsageFormatter;
 import cds.adql.validation.report.MarkdownReport;
 import cds.adql.validation.report.StatCollector;
 import cds.adql.validation.report.TextReport;
@@ -17,11 +19,9 @@ import java.util.*;
  * Class running the command line version of the ADQL Validator.
  *
  * @author Gr&eacute;gory Mantelet (CDS)
- * @version 1.0 (01/2023)
- * @deprecated
+ * @version 1.0 (04/2025)
  */
-@Deprecated
-public class ADQLValidatorRunner {
+public class ADQLValidatorCLI {
 
     @Parameter(required = true,
                description="(FILE|DIRECTORY)...")
@@ -55,17 +55,17 @@ public class ADQLValidatorRunner {
         TXT,
         TEXT,
         MD,
-        MARKDOWN;
+        MARKDOWN
     }
 
     public static void main(final String[] args)
     {
         // Create the runner:
-        final ADQLValidatorRunner main = new ADQLValidatorRunner();
+        final ADQLValidatorCLI validatorRunner = new ADQLValidatorCLI();
 
         // Create and configure the argument parser:
         JCommander commander = JCommander.newBuilder()
-                                         .addObject(main)
+                                         .addObject(validatorRunner)
                                          .build();
         commander.setUsageFormatter(new CustomUsageFormatter(commander));
         commander.setProgramName("java -jar adqlvalidator.jar");
@@ -74,7 +74,7 @@ public class ADQLValidatorRunner {
         commander.parse(args);
 
         // Run the validator with these arguments:
-        main.run(commander);
+        validatorRunner.run(commander);
     }
 
     /**
@@ -82,7 +82,7 @@ public class ADQLValidatorRunner {
      *
      * <p><i><b>Note:</b>
      *  All parsed arguments are stored in this instance of
-     *  {@link ADQLValidatorRunner}. The given parameter - commander - is the
+     *  {@link ADQLValidatorCLI}. The given parameter - commander - is the
      *  tool used to parse the arguments. It is useful here only to get the
      *  help/usage of this command line program.
      * </i></p>
@@ -109,18 +109,10 @@ public class ADQLValidatorRunner {
         // Append the result reporter, if not quiet:
         if (!quiet) {
             // ...create the reporter:
-            final ValidatorListener reporter;
-            switch(format){
-                case MD:
-                case MARKDOWN:
-                    reporter = new MarkdownReport();
-                    break;
-                case TXT:
-                case TEXT:
-                default:
-                    reporter = new TextReport();
-                    break;
-            }
+            final ValidatorListener reporter = switch(format) {
+                                                    case MD, MARKDOWN -> new MarkdownReport();
+                                                    default -> new TextReport();
+                                                };
             // ...filter its output:
             reporter.setShowOnlyFailures(!showAll);
             // ...associate the reporter to  the stats collector, if any:
@@ -143,7 +135,7 @@ public class ADQLValidatorRunner {
         if (file.isDirectory())
         {
             // Sort files by alphabetic order:
-            File[] sortedFiles = file.listFiles();
+            File[] sortedFiles = listDirectoryContent(file);
             Arrays.sort(sortedFiles, Comparator.comparing(File::getAbsolutePath));
 
             // Now try to validate all of them:
@@ -160,6 +152,11 @@ public class ADQLValidatorRunner {
         // Otherwise, nothing to validate, so return true:
         else
             return true;
+    }
+
+    private File[] listDirectoryContent(final File directory){
+        final File[] dirContent = directory.listFiles();
+        return Objects.requireNonNullElseGet(dirContent, () -> new File[0]);
     }
 
     protected boolean validateFile(final File file, final ADQLValidator validator){
@@ -180,7 +177,7 @@ public class ADQLValidatorRunner {
             // Parse and validate the validation queries:
             try(InputStream stream = new FileInputStream(file)) {
                 // ...and validate the tests set:
-                return validator.validateXML(stream, "File (" + file.getAbsolutePath() + ")");
+                return validator.validate(stream, "File (" + file.getAbsolutePath() + ")");
             }
         }
         catch(Exception ex){

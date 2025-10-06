@@ -1,13 +1,9 @@
 package cds.adql.validation.query;
 
-import cds.adql.validation.parser.ValidationSetParser;
+import cds.adql.validation.parser.adql.ADQLVersion;
+import cds.adql.validation.parser.validationset.ValidationSetParser;
 
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
-import static adql.parser.ADQLParser.ADQLVersion;
+import java.util.*;
 
 /**
  * Representation of a single Validation Test corresponding to an ADQL query to
@@ -20,7 +16,7 @@ import static adql.parser.ADQLParser.ADQLVersion;
  *
  * <p>
  *     Though by default, there is no ADQL query set, one should immediately be
- *     created. Otherwise this Validation Test is not useful.
+ *     created. Otherwise, this Validation Test is not useful.
  * </p>
  *
  * <p><b>IMPORTANT:</b>
@@ -34,7 +30,7 @@ import static adql.parser.ADQLParser.ADQLVersion;
  * <ul>
  *     <li>
  *        Do not forget to set appropriately the flag about the expected test
- *        result: see {@link #isValid}.
+ *        result: see {@link #setExpectedToBeValid(boolean)}.
  *     </li>
  *     <li>
  *        The highest possible target ADQL version should also be set if not
@@ -46,27 +42,27 @@ import static adql.parser.ADQLParser.ADQLVersion;
  *
  *
  * @author Gr&eacute;gory Mantelet (CDS)
- * @version 1.0 (01/2023)
+ * @version 2.0 (04/2025)
  */
 public class ValidationQuery {
 
     /** Unique ID of this test in an entire validation tests set. */
-    public final UUID id;
+    private final UUID id;
 
     /** Human description of this test. */
-    public String description = null;
+    private String description = null;
 
     /** Definitions of all allowed User Defined Functions. */
-    public final Set<UDF> functions = new LinkedHashSet<>(3);
+    private final Set<UDF> functions = new LinkedHashSet<>(3);
 
     /** The ADQL query to test. */
-    public String query = null;
+    private String query = null;
 
     /** Indicate whether the query is expected to be valid or not. */
-    public boolean isValid = false;
+    private boolean isValid = false;
 
     /** Query's ADQL version target. */
-    public ADQLVersion adqlVersion = ValidationSetParser.DEFAULT_ADQL_VERSION;
+    private ADQLVersion adqlVersion = ValidationSetParser.DEFAULT_ADQL_VERSION;
 
     /**
      * Create a {@link ValidationQuery} with a generated UUID.
@@ -92,7 +88,47 @@ public class ValidationQuery {
      *              <i>If NULL, one will be automatically generated.</i>
      */
     public ValidationQuery(final String id){
-        this.id = (id == null || id.trim().length() == 0) ? UUID.randomUUID() : UUID.fromString(id);
+        this.id = (id == null || id.trim().isEmpty()) ? UUID.randomUUID() : UUID.fromString(id);
+    }
+
+    public final UUID getId() {
+        return id;
+    }
+
+    public Optional<String> getQuery() {
+        return Optional.ofNullable(query);
+    }
+
+    public void setQuery(final String query) {
+        this.query = query;
+    }
+
+    public Optional<String> getDescription() {
+        return Optional.ofNullable(description);
+    }
+
+    public void setDescription(final String description) {
+        this.description = (description == null || description.isBlank()) ? null : description.trim();
+    }
+
+    public Iterator<UDF> getFunctions() {
+        return functions.iterator();
+    }
+
+    public boolean isExpectedToBeValid() {
+        return isValid;
+    }
+
+    public void setExpectedToBeValid(final boolean valid) {
+        isValid = valid;
+    }
+
+    public ADQLVersion getADQLVersion() {
+        return adqlVersion;
+    }
+
+    public void setADQLVersion(final ADQLVersion adqlVersion) {
+        this.adqlVersion = (adqlVersion == null ? ValidationSetParser.DEFAULT_ADQL_VERSION : adqlVersion);
     }
 
     @Override

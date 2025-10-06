@@ -1,265 +1,43 @@
 package cds.adql.validation;
 
-import adql.parser.ADQLParser;
-import adql.parser.grammar.ParseException;
-import cds.adql.validation.parser.ValidationSetParser;
-import cds.adql.validation.parser.xml.XMLValidationSetParser;
+import cds.adql.validation.parser.adql.ADQLParser;
+import cds.adql.validation.parser.adql.exceptions.ADQLParseException;
+import cds.adql.validation.parser.validationset.ValidationSetParseException;
+import cds.adql.validation.parser.validationset.xml.XMLValidationSetParser;
 import cds.adql.validation.query.UDF;
 import cds.adql.validation.query.ValidationQuery;
 import cds.adql.validation.query.ValidationSet;
-import cds.adql.validation.report.ValidatorListener;
 
 import java.io.InputStream;
-import java.util.*;
-import java.util.logging.Level;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
-
-import static adql.parser.ADQLParser.ADQLVersion;
 
 /**
  * Validator tool for queries set and individual queries, whatever is their
  * format (XML or Java Object).
  *
  * <p>
- *     This validator can deal with all supported ADQL versions.
- *     <em>See {@link #getParser(ADQLVersion)}.</em>
- * </p>
- *
- * <p>
- *     Any validation process reports its progress and result to all registered
- *     {@link ValidatorListener}. Some are already provided (
- *     {@link cds.adql.validation.report.StatCollector},
- *     {@link cds.adql.validation.report.MarkdownReport} and
- *     {@link cds.adql.validation.report.TextReport}) but custom ones are
- *     encouraged in case of special needs.
+ *     All parsers to run with this validator MUST be listed in the
+ *     configuration file: {@value ParsersConfiguration#PARSERS_CONFIGURATION_FILE}.
  * </p>
  *
  * @author Gr&eacute;gory Mantelet (CDS)
- * @version 1.0 (12/2021)
+ * @version 2.0 (04/2025)
  */
 public class ADQLValidator {
 
-    final static Logger LOGGER = Logger.getLogger(ADQLValidator.class.getName());
+    static final Logger LOGGER = Logger.getLogger(ADQLValidator.class.getName());
 
-    private final List<ValidatorListener> listeners;
-
-    private final Map<ADQLVersion, ADQLParser> parsers;
+    private final List<ADQLParser> parsers;
 
     /* ********************************************************************** */
 
-    public ADQLValidator(){
-        listeners = new ArrayList<>();
-        parsers = new HashMap<>(ADQLVersion.values().length);
+    public ADQLValidator(final ExecutorService threadPool) throws IncorrectValidatorConfigurationException {
+        parsers   = ParsersConfiguration.getParsers(threadPool);
     }
 
-    /* *************************************************************************
-     * LISTENERS MANAGEMENT
-     */
-
-    /**
-     * Add a listener to this validator.
-     *
-     * <p>
-     *  This function rejects NULL listeners ; it returns <code>false</code>
-     *  immediately.
-     * </p>
-     *
-     * <p>
-     *  This function does nothing more than returning <code>true</code>
-     *  immediately if the given listener is already registered with this
-     *  validator.
-     * </p>
-     *
-     * <p><i><b>Note:</b>
-     *  If the listener can not be added, this function returns
-     *  <code>false</code> and logs the reason as a WARNING message.
-     * </i></p>
-     *
-     * @param listener  The new listener.
-     *
-     * @return <code>true</code> if the listener has been added,
-     *         <code>false</code> otherwise (e.g. if already listening).
-     */
-    public final boolean addListener(final ValidatorListener listener){
-        // Forbid NULL listeners:
-        if (listener == null)
-            return false;
-
-        // Do nothing more if already registered:
-        else if (listeners.contains(listener))
-            return true;
-
-        // Otherwise, use the standard ArrayList `add(Object) function:
-        try{
-            return listeners.add(listener);
-        }
-
-        // ...but in case of error, log a WARNING and return `false`:
-        catch(Exception ex){
-            LOGGER.log(Level.WARNING, "Impossible to add the given listener! Cause: "+ex.getMessage(), ex);
-            return false;
-        }
-    }
-
-    /**
-     * Insert the given listener at the given position in the listeners list.
-     *
-     * <p>
-     *  This function rejects NULL listeners ; it returns <code>false</code>
-     *  immediately.
-     * </p>
-     *
-     * <p>
-     *  This function does nothing more than returning <code>true</code>
-     *  immediately if the given listener is already registered with this
-     *  validator.
-     * </p>
-     *
-     * <p><i><b>Note:</b>
-     *  If the listener can not be added, this function returns
-     *  <code>false</code> and logs the reason as a WARNING message.
-     * </i></p>
-     *
-     * @param index     Position where to insert the listener.
-     * @param listener  The new listener.
-     *
-     * @return <code>true</code> if the listener has been added,
-     *         <code>false</code> otherwise (e.g. if already listening).
-     */
-    public final boolean addListener(final int index, final ValidatorListener listener){
-        // Forbid NULL listeners:
-        if (listener == null)
-            return false;
-
-        // Do nothing more if already registered:
-        else if (listeners.contains(listener))
-            return true;
-
-        // Otherwise, use the standard ArrayList `add(int, Object)` function:
-        try {
-            listeners.add(index, listener);
-            return true;
-        }
-
-        // ...but in case of error, log a WARNING and return `false`:
-        catch(Exception ex){
-            LOGGER.log(Level.WARNING, "Impossible to add the given listener! Cause: "+ex.getMessage(), ex);
-            return false;
-        }
-    }
-
-    /**
-     * Remove the given listener from the list of objects listening to this
-     * validator.
-     *
-     * <p><i><b>Note:</b>
-     *  If the listener can not be removed, this function returns
-     *  <code>false</code> and logs the reason as a FINE message.
-     * </i></p>
-     *
-     * @param listener  The listener to remove.
-     *
-     * @return  <code>true</code> if the listener has been removed,
-     *          <code>false</code> otherwise (e.g. if already not listening).
-     */
-    public final boolean removeListener(final ValidatorListener listener){
-        // Use the standard ArrayList `remove(Object)` function:
-        try {
-            if (listeners.remove(listener))
-                return true;
-            else {
-                LOGGER.log(Level.FINE, "Impossible to remove the given listener! Cause: it does not listen to this validator.");
-                return false;
-            }
-        }
-        // ...but in case of error, log a FINE message and return `false`:
-        catch(Exception ex){
-            LOGGER.log(Level.FINE, "Impossible to remove the given listener! Cause: "+ex.getMessage(), ex);
-            return false;
-        }
-    }
-
-    /**
-     * Remove the specified listener from the list of objects listening to this
-     * validator.
-     *
-     * <p><i><b>Note:</b>
-     *  If no listener matches the given index, NULL is returned and the reason
-     *  is logged as a FINE message.
-     * </i></p>
-     *
-     * @param index  Index of the listener to remove.
-     *
-     * @return  The removed listener,
-     *          or NULL in case of error.
-     */
-    public final ValidatorListener removeListener(final int index){
-        try {
-            return listeners.remove(index);
-        }
-        // ...but in case of error, log a WARNING and return NULL:
-        catch(Exception ex){
-            LOGGER.log(Level.FINE, "Impossible to remove the listener at the index "+index+"! Cause: "+ex.getMessage(), ex);
-            return null;
-        }
-    }
-
-    /**
-     * Get an iterator over the complete list of objects listening to this
-     * validator.
-     *
-     * @return  An iterator over all listeners.
-     */
-    public final Iterator<ValidatorListener> getListeners(){
-        return listeners.iterator();
-    }
-
-    /* *************************************************************************
-     * PARSERS MANAGEMENT
-     */
-
-    /**
-     * Get a parser for the given version of ADQL.
-     *
-     * <p>
-     *     If no parser exists for the given ADQL version, one will be created
-     *     and returned. Then, it will be reused whenever a parser for the same
-     *     ADQL version is asked.
-     * </p>
-     *
-     * <p>
-     *     The returned parser always accepts all coordinate systems.
-     * </p>
-     *
-     * @param version   The target ADQL version.
-     *                  NULL is equivalent to {@link ValidationSetParser#DEFAULT_ADQL_VERSION}.
-     *
-     * @return  The corresponding ADQL parser.
-     */
-    protected ADQLParser getParser(ADQLVersion version) {
-        // Set a default version if none is provided:
-        if (version == null)
-            version = ValidationSetParser.DEFAULT_ADQL_VERSION;
-
-        // Try to get the parser, if already created:
-        ADQLParser parser = parsers.get(version);
-
-        // If not existing, create it:
-        if (parser == null) {
-            parsers.put(version, (parser = new ADQLParser(version)));
-            // Allow any coordinate system from ADQL-2.1 only:
-            /*if (version != ADQLVersion.V2_0){*/
-                try {
-                    parser.setAllowedCoordSys(null);
-                } catch (ParseException e) {
-                    LOGGER.log(Level.WARNING, "Impossible to remove the restriction on the coordinate system argument!", e);
-                }
-            /*}*/
-        }
-
-        // Return the found/created parser:
-        return parser;
-    }
 
     /* *************************************************************************
      * XML VALIDATION
@@ -282,12 +60,16 @@ public class ADQLValidator {
         try {
             (new XMLValidationSetParser()).checkXML(stream);
             return true;
-        }catch(cds.adql.validation.parser.ParseException pe){
-            publishError(new ValidationException("Incorrect XML syntax! Cause: "+pe.getMessage(), pe));
-            publishEndValidation(new ValidationSet());
+        }catch(ValidationSetParseException pe){
+            //publishError(new ValidationException("Incorrect XML syntax! Cause: "+pe.getMessage(), pe));
             return false;
         }
     }
+
+
+    /* *************************************************************************
+     * VALIDATION METHODS
+     */
 
     /**
      * Validate a valid XML document representing a complete validation set.
@@ -315,7 +97,7 @@ public class ADQLValidator {
      * @see XMLValidationSetParser#parse(InputStream)
      * @see #validate(ValidationSet, String)
      */
-    public boolean validateXML(final InputStream stream, final String source){
+    public boolean validate(final InputStream stream, final String source){
         // Parse the file:
         ValidationSet tests;
         try{
@@ -324,21 +106,34 @@ public class ADQLValidator {
             // Validate the tests set:
             if (tests != null)
                 return validate(tests, source);
-            // Or report an error:
+                // Or report an error:
             else {
-                publishError(new ValidationException("No validation set provided!"));
+                //publishError(new ValidationException("No validation set provided!"));
                 return false;
             }
         }
-        catch (cds.adql.validation.parser.ParseException e) {
-            publishError(new ValidationException("XML document parsing failed! Cause: "+e.getMessage(), e));
+        catch (ValidationSetParseException e) {
+            //publishError(new ValidationException("XML document parsing failed! Cause: "+e.getMessage(), e));
             return false;
         }
     }
 
-    /* *************************************************************************
-     * GENERIC VALIDATION
+    /**
+     * Validate a single ADQL query.
+     *
+     * <p><i><b>Note:</b>
+     *   NULL or an empty query string will make this function immediately
+     *   return <code>false</code>.
+     * </i></p>
+     *
+     * @param query     The query to validate.
+     *
+     * @return  <code>true</code> if this query passed the validation test,
+     *          <code>false</code> otherwise.
      */
+    public boolean validate(final ValidationQuery query){
+        return validate(query, null);
+    }
 
     /**
      * Validate all queries of the given validation set.
@@ -363,38 +158,15 @@ public class ADQLValidator {
         if (set == null)
             return false;
 
-        // Publish the start of the Validation session:
-        publishStartValidation(set, source);
-
         // Validate all queries:
         boolean allValid = true;
         for(ValidationQuery query : set.queries) {
-            /* always try to validate all queries even if allValid is false ;
-             * that way, all errors of all queries are reported. */
+            /* Always try to validate all queries even if allValid is false.
+             * That way, all errors of all queries are reported. */
             allValid = validate(query, set.functions) && allValid;
         }
 
-        // Publish the end of the Validation session:
-        publishEndValidation(set);
-
         return allValid;
-    }
-
-    /**
-     * Validate a single ADQL query.
-     *
-     * <p><i><b>Note:</b>
-     *   NULL or an empty query string will make this function immediately
-     *   return <code>false</code>.
-     * </i></p>
-     *
-     * @param query     The query to validate.
-     *
-     * @return  <code>true</code> if this query passed the validation test,
-     *          <code>false</code> otherwise.
-     */
-    public boolean validate(final ValidationQuery query){
-        return validate(query, null);
     }
 
     /**
@@ -414,8 +186,8 @@ public class ADQLValidator {
     public boolean validate(final ValidationQuery query, final Set<UDF> functions){
         // Nothing to validate if NULL:
         if (query == null
-            || query.query == null
-            || query.query.trim().isEmpty())
+                || query.query == null
+                || query.query.trim().isEmpty())
         {
             return false;
         }
@@ -423,71 +195,31 @@ public class ADQLValidator {
         boolean valid;
         String err = null;
 
-        // Get the appropriate ADQL parser:
-        final ADQLParser parser = getParser(query.adqlVersion);
+        for(ADQLParser parser : parsers) {
 
-        // Declare all UDFs to support:
-        if (functions != null) {
-            for (UDF u : functions)
-                parser.getSupportedFeatures().support(u.getFeature());
+            // TODO See how to detect UDF
+            /*// Declare all UDFs to support:
+            if (functions != null) {
+                for (UDF u : functions)
+                    parser.getSupportedFeatures().support(u.getFeature());
+            }
+            for (UDF u : query.functions)
+                parser.getSupportedFeatures().support(u.getFeature());*/
+
+            // Parse the ADQL query:
+            try {
+                parser.parse(query.query, query.adqlVersion); // TODO Ensure query.adqlVersion is never NULL (make this property private and add getter/setter)
+                valid = true;
+            } catch (ADQLParseException pe) {
+                valid = false;
+                err = pe.getMessage();
+            }
+
+            // Report the validation result:
+            final boolean success = (valid == query.isValid);
         }
-        for(UDF u : query.functions)
-            parser.getSupportedFeatures().support(u.getFeature());
 
-        // Publish start of validation:
-        publishStartValidation(query);
-
-        // Parse the ADQL query:
-        try {
-            parser.parseQuery(query.query);
-            valid = true;
-        }catch(ParseException pe){
-            valid = false;
-            err = pe.getMessage();
-        }
-
-        // Report the validation result:
-        final boolean success = (valid == query.isValid);
-        publishTestResult(query, success, err);
-        return success;
-    }
-
-    protected void publishStartValidation(final ValidationSet set,
-                                          final String source)
-    {
-        for(ValidatorListener listener : listeners){
-            listener.start(set, source);
-        }
-    }
-
-    protected void publishEndValidation(final ValidationSet set){
-        for(ValidatorListener listener : listeners){
-            listener.end(set);
-        }
-    }
-
-    protected void publishStartValidation(final ValidationQuery query){
-        for(ValidatorListener listener : listeners){
-            listener.validating(query);
-        }
-    }
-
-    protected void publishError(final ValidationException error){
-        for(ValidatorListener listener : listeners){
-            listener.error(error);
-        }
-    }
-
-    protected void publishTestResult(final ValidationQuery query,
-                                     final boolean success,
-                                     final String errorMessage)
-    {
-        for(ValidatorListener listener : listeners){
-            if (success)
-                listener.pass(query);
-            else
-                listener.fail(query, errorMessage);
-        }
+        return success; // TODO Collect all success status (and return them? or combine them?)
     }
 
 }

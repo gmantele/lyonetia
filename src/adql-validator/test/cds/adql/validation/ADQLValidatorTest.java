@@ -1,7 +1,7 @@
 package cds.adql.validation;
 
 import adql.parser.ADQLParser;
-import cds.adql.validation.parser.ValidationSetParser;
+import cds.adql.validation.parser.validationset.ValidationSetParser;
 import cds.adql.validation.query.ValidationQuery;
 import cds.adql.validation.query.ValidationSet;
 import cds.adql.validation.report.RecorderListener;
@@ -172,7 +172,7 @@ class ADQLValidatorTest {
 
     @Test
     void validate_Set_Null() {
-        assertFalse((new ADQLValidator()).validate(null, (String)null));
+        assertFalse((new ADQLValidator()).validate((ValidationSet)null, null));
     }
 
     @Test
@@ -395,14 +395,14 @@ class ADQLValidatorTest {
      */
 
     @Test
-    void validateXML_Null() {
+    void validate_Null() {
         assertThrows(NullPointerException.class,
-                ()->(new ADQLValidator()).validateXML(null, null),
+                ()->(new ADQLValidator()).validate((ValidationSet) null, null),
                 "Missing input validation set!");
     }
 
     @Test
-    void validateXML_EmptyValidationSet() {
+    void validate_EmptyValidationSet() {
         final ADQLValidator validator = new ADQLValidator();
 
         // Trace all errors:
@@ -410,7 +410,7 @@ class ADQLValidatorTest {
         validator.addListener(listener);
 
         // Try validating an incorrect XML document and ensure it fails:
-        assertTrue(validator.validateXML(new ByteArrayInputStream("<queries></queries>".getBytes()), null));
+        assertTrue(validator.validate(new ByteArrayInputStream("<queries></queries>".getBytes()), null));
 
         // No error and failure message should have been published to listeners:
         assertEquals(0, listener.getErrors().length());
@@ -418,7 +418,7 @@ class ADQLValidatorTest {
     }
 
     @Test
-    void validateXML_IncorrectXML() {
+    void validateXML_Incorrect() {
         final ADQLValidator validator = new ADQLValidator();
 
         // Trace all errors:
@@ -426,7 +426,7 @@ class ADQLValidatorTest {
         validator.addListener(listener);
 
         // Try validating an incorrect XML document and ensure it fails:
-        assertFalse(validator.validateXML(new ByteArrayInputStream("<hello>World</hello>".getBytes()), null));
+        assertFalse(validator.validate(new ByteArrayInputStream("<hello>World</hello>".getBytes()), null));
 
         // An error message should have been published to listeners:
         assertEquals("XML document parsing failed! Cause: org.xml.sax.SAXParseException; lineNumber: 1; columnNumber: 8; Unsupported XML root tag: <hello>! Expected: <queries>.", listener.getErrors());
@@ -434,7 +434,7 @@ class ADQLValidatorTest {
     }
 
     @Test
-    void validateXML_CorrectXMLAndQueries() {
+    void validateXML_CorrectAndQueries() {
         final ADQLValidator validator = new ADQLValidator();
 
         // Trace all errors:
@@ -442,7 +442,7 @@ class ADQLValidatorTest {
         validator.addListener(listener);
 
         // Try validating a valid validation set and ensure it succeeds:
-        assertTrue(validator.validateXML(new ByteArrayInputStream("<queries><description>Some description for the entire set.</description><query uuid=\"ccd99070-4508-11e6-b60c-9d2c33f9b7a2\"><description>The simplest ADQL query.</description><adql valid=\"true\" version=\"adql-2.0\">select x from y</adql></query></queries>".getBytes()), "Inline test"));
+        assertTrue(validator.validate(new ByteArrayInputStream("<queries><description>Some description for the entire set.</description><query uuid=\"ccd99070-4508-11e6-b60c-9d2c33f9b7a2\"><description>The simplest ADQL query.</description><adql valid=\"true\" version=\"adql-2.0\">select x from y</adql></query></queries>".getBytes()), "Inline test"));
 
         // No error message should have been published to listeners:
         assertEquals(0, listener.getErrors().length());
@@ -450,7 +450,7 @@ class ADQLValidatorTest {
     }
 
     @Test
-    void validateXML_CorrectXML_ButIncorrectQuery() {
+    void validateXML_Correct_ButIncorrectQuery() {
         final ADQLValidator validator = new ADQLValidator();
 
         // Trace all errors:
@@ -458,7 +458,7 @@ class ADQLValidatorTest {
         validator.addListener(listener);
 
         // Try validating a correct XML, but wrong query and ensure it fails:
-        assertFalse(validator.validateXML(new ByteArrayInputStream("<queries><description>Some description for the entire set.</description><query uuid=\"ccd99070-4508-11e6-b60c-9d2c33f9b7a2\"><description>Wrong ADQL query.</description><adql valid=\"true\" version=\"adql-2.0\">select everything</adql></query></queries>".getBytes()), "Inline test"));
+        assertFalse(validator.validate(new ByteArrayInputStream("<queries><description>Some description for the entire set.</description><query uuid=\"ccd99070-4508-11e6-b60c-9d2c33f9b7a2\"><description>Wrong ADQL query.</description><adql valid=\"true\" version=\"adql-2.0\">select everything</adql></query></queries>".getBytes()), "Inline test"));
 
         // A failure message should have been published to listeners:
         assertEquals(0, listener.getErrors().length());
