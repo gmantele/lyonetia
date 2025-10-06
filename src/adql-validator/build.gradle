@@ -1,5 +1,4 @@
 plugins {
-    id "java"
     id "application"
 }
 
@@ -11,16 +10,14 @@ version = '1.0'
 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'lib'
-    }
 }
 
 dependencies {
-    implementation name: 'vollt-adqllib_1.6'
-    implementation 'com.beust:jcommander:1.81'
+    implementation 'com.beust:jcommander:1.82'
+    implementation 'org.json:json:20250517'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
+    testImplementation 'org.awaitility:awaitility:4.3.0'
 }
 
 /* *************************************************************************
@@ -37,7 +34,7 @@ application {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -48,7 +45,7 @@ java {
 sourceSets.main.java.srcDirs = ["src"]
 sourceSets.main.resources.srcDirs = ["resources"]
 sourceSets.test.java.srcDirs = ["test"]
-sourceSets.test.resources.srcDirs = ["sample"]
+sourceSets.test.resources.srcDirs = ["test-resources"]
 
 /* *************************************************************************
  * * JUNIT TESTS CONFIGURATION                                             *
