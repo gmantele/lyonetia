@@ -1,0 +1,14 @@
+[versions]
+json          = "20250517"
+jcommander    = "1.82"
+junit-jupiter = "6.0.0"
+awaitibility  = "4.3.0"
+
+[libraries]
+jcommander    = { module = "com.beust:jcommander"           , version.ref = "jcommander" }
+json          = { module = "org.json:json"                  , version.ref = "json" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+awaitibility  = { module = "org.awaitility:awaitility"      , version.ref = "awaitibility" }
+
+[bundles]
+junit-jupiter = [ 'junit-jupiter' ]
