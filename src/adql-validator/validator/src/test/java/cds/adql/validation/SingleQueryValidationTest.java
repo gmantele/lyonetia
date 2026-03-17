@@ -24,8 +24,8 @@ class SingleQueryValidationTest {
     @BeforeAll
     static void beforeAll() {
         threadPool = new ThreadPool(10);
-        goodParser = new ADQLParser("MyGoodParser", "test-resources/parsers/successful_parsing.bash");
-        badParser  = new ADQLParser("MyBadParser" , "test-resources/parsers/failed_parsing.bash");
+        goodParser = new ADQLParser("MyGoodParser", "src/test/resources/parsers/successful_parsing.bash");
+        badParser  = new ADQLParser("MyBadParser" , "src/test/resources/parsers/failed_parsing.bash");
     }
 
     @AfterAll

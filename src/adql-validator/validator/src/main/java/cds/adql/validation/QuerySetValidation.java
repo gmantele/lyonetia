@@ -12,16 +12,17 @@ public class QuerySetValidation {
 
     private final ValidationSet querySet;
     private final ThreadPool threadPool;
+    private final List<ADQLParser> parsers;
     private final ADQLValidationReport report;
 
-    public QuerySetValidation(final ValidationSet querySet, final ThreadPool threadPool, final ADQLValidationReport report) {
+    public QuerySetValidation(final ValidationSet querySet, final ThreadPool threadPool, final List<ADQLParser> parsers, final ADQLValidationReport report) {
         this.querySet   = Objects.requireNonNull(querySet);
         this.threadPool = Objects.requireNonNull(threadPool);
+        this.parsers    = Objects.requireNonNull(parsers);
         this.report     = Objects.requireNonNull(report);
     }
 
-    public void startValidation() throws IncorrectValidatorConfigurationException {
-        final List<ADQLParser> parsers = ParsersConfiguration.getParsers();
+    public void startValidation() {
         for(ValidationQuery query : querySet) {
             for (ADQLParser parser : parsers){
                 final SingleQueryValidation queryValidator = new SingleQueryValidation(query, parser, report);

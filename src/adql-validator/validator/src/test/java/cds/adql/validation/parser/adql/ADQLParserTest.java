@@ -97,7 +97,7 @@ class ADQLParserTest {
     @Test
     void parse_ShouldFail_WhenTooLong() {
         // Given:
-        final ADQLParser parser = new ADQLParser("test", "test-resources/parsers/long_running.bash");
+        final ADQLParser parser = new ADQLParser("test", "src/test/resources/parsers/long_running.bash");
 
         // When:
         try {
@@ -114,7 +114,7 @@ class ADQLParserTest {
     @Test
     void parse_ShouldFail_WhenMissingSuccessFlag() {
         // Given:
-        final ADQLParser parser = new ADQLParser("test", "test-resources/parsers/missing_success_flag.bash");
+        final ADQLParser parser = new ADQLParser("test", "src/test/resources/parsers/missing_success_flag.bash");
 
         // When:
         try {
@@ -131,7 +131,7 @@ class ADQLParserTest {
     @Test
     void parse_ShouldFail_WhenMissingErrorFlag() {
         // Given:
-        final ADQLParser parser = new ADQLParser("test", "test-resources/parsers/missing_error_flag.bash");
+        final ADQLParser parser = new ADQLParser("test", "src/test/resources/parsers/missing_error_flag.bash");
 
         // When:
         try {
@@ -148,7 +148,7 @@ class ADQLParserTest {
     @Test
     void parse_ShouldSucceed_WhenSuccessfulParsing() throws ADQLParseException {
         // Given:
-        final ADQLParser parser = new ADQLParser("test", "test-resources/parsers/successful_parsing.bash");
+        final ADQLParser parser = new ADQLParser("test", "src/test/resources/parsers/successful_parsing.bash");
 
         // When:
         final ParsingResult result = parser.parse(DUMB_QUERY, ADQLVersion.V2_0);
@@ -164,7 +164,7 @@ class ADQLParserTest {
     @Test
     void parse_ShouldSucceed_WhenFailedParsing() throws ADQLParseException {
         // Given:
-        final ADQLParser parser = new ADQLParser("test", "test-resources/parsers/failed_parsing.bash");
+        final ADQLParser parser = new ADQLParser("test", "src/test/resources/parsers/failed_parsing.bash");
 
         // When:
         final ParsingResult result = parser.parse(DUMB_QUERY, ADQLVersion.V2_0);

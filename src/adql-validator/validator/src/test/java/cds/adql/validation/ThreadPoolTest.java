@@ -87,8 +87,9 @@ class ThreadPoolTest {
         pool.shutdown();
 
         // Then:
-        assertFalse(futureValidation.isDone());
-        assertFalse(pool.isStopped());
+        assertTrue(futureValidation.isDone());
+        assertTrue(pool.isStopped());
+        assertFalse(report.getQueryReports().next().getValue().isPassed());
         assertThrows(RejectedExecutionException.class, () -> pool.submit(validator));
     }
 

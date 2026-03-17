@@ -34,7 +34,6 @@ public class ADQLParser {
     public ADQLParser(final String name, final String parserCommand){
         this.name              = normalizeParserName(name);
         this.parserToolCommand = Objects.requireNonNull(parserCommand);
-        System.out.println("NEW PARSER: '"+this.name+"' ("+this.parserToolCommand+")");
     }
 
     private static String normalizeParserName(final String name) throws NullPointerException {

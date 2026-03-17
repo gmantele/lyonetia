@@ -20,8 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Objects;
-import java.util.Stack;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -37,7 +38,7 @@ import java.util.regex.Pattern;
  * </p>
  *
  * @author Gr&eacute;gory Mantelet (CDS)
- * @version 2.0 (05/2025)
+ * @version 2.0 (10/2025)
  */
 public class XMLValidationSetParser implements ValidationSetParser {
 
@@ -67,7 +68,7 @@ public class XMLValidationSetParser implements ValidationSetParser {
             // Return the parsed validation set:
             return querieshandler.queries;
         }
-        catch (Exception e) {
+        catch(Exception e) {
             throw new ValidationSetParseException(e);
         }
     }
@@ -215,7 +216,7 @@ public class XMLValidationSetParser implements ValidationSetParser {
         private boolean hasQueriesElt = false;
 
         /** Context stack. The head is the current context. */
-        private final Stack<Context> ctx = new Stack<>();
+        private final Deque<Context> ctx = new ArrayDeque<>();
 
         /** Parser position inside the XML document. */
         private Locator loc = null;
@@ -408,7 +409,7 @@ public class XMLValidationSetParser implements ValidationSetParser {
              * ANYTHING ELSE IS UNSUPPORTED!
              */
             else {
-                if (ctx.empty())
+                if (ctx.isEmpty())
                     throw new SAXParseException("Unsupported XML root tag: <" + qName + ">! Expected: <queries>.", loc);
                 else
                 {
@@ -475,11 +476,10 @@ public class XMLValidationSetParser implements ValidationSetParser {
                     break;
                 case CONTACT:
                     // If no info about the contact discard the object:
-                    if (queries.getContact().isPresent()) {
-                        final Contact contact = queries.getContact().get();
+                    queries.getContact().ifPresent(contact -> {
                         if ((contact.name == null || contact.name.trim().isEmpty()) && (contact.url == null))
                             queries.setContact(null);
-                    }
+                    });
                     break;
                 case CONTACT_NAME:
                     queries.getContact().ifPresent(contact -> contact.name = content);
@@ -494,11 +494,10 @@ public class XMLValidationSetParser implements ValidationSetParser {
                     break;
                 case PUBLISHER:
                     // If no info about the publisher discard the object:
-                    if (queries.getPublisher().isPresent()) {
-                        final Publisher publisher = queries.getPublisher().get();
+                    queries.getPublisher().ifPresent(publisher -> {
                         if ((publisher.name == null || publisher.name.trim().isEmpty()) && (publisher.url == null))
                             queries.setPublisher(null);
-                    }
+                    });
                     break;
                 case PUBLISHER_NAME:
                     queries.getPublisher().ifPresent(publisher -> publisher.name = content);
@@ -517,7 +516,7 @@ public class XMLValidationSetParser implements ValidationSetParser {
 
         @Override
         public void characters(char[] ch, int start, int length) throws SAXException {
-            if (ctx.empty())
+            if (ctx.isEmpty())
                 throw new SAXParseException("Unsupported ADQL validation set format! Expected: XML document.", loc);
             else
                 eltContent.append(System.lineSeparator()).append(new String(ch, start, length));

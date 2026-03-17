@@ -1,6 +1,6 @@
 package cds.adql.validation.parser;
 
-import static adql.parser.ADQLParser.ADQLVersion;
+import cds.adql.validation.parser.adql.ADQLVersion;
 import cds.adql.validation.query.ValidationSet;
 
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * </i></p>
  *
  * @author Gr&eacute;gory Mantelet (CDS)
- * @version 1.0 (10/2021)
+ * @version 1.0 (10/2025)
  */
 public interface ValidationSetParser {
 
@@ -35,7 +35,7 @@ public interface ValidationSetParser {
 
     /** ADQL version set by default when none is specified.
      * Generally it corresponds to the most recent ADQL version. */
-    ADQLVersion DEFAULT_ADQL_VERSION = ADQLVersion.V2_1;
+    ADQLVersion DEFAULT_ADQL_VERSION = ADQLVersion.latest();
 
     /** Regular expression for the version 2.1 of ADQL. */
     Pattern PATTERN_ADQL_2_1 = Pattern.compile("^(adql-?)?v?2(.1)?$");

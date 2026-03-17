@@ -82,7 +82,7 @@ public class ThreadPool implements AutoCloseable {
      *
      * <p>
      *     This function waits the time set at the creation of this ThreadPool
-     *     (see {@link #ThreadPool(int, int)}). If not set at initialisation,
+     *     (see {@link #ThreadPool(int, int)}). If not set at initialization,
      *     it is set by default to {@value #DEFAULT_TIME_BEFORE_DESTRUCTION}
      *     seconds.
      * </p>

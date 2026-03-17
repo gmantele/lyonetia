@@ -129,7 +129,7 @@ class RunCommandTest {
         catch(Exception ex){
             assertEquals(RunParserException.class, ex.getClass());
             assertEquals(IOException.class, ex.getCause().getClass());
-            assertEquals("Cannot startValidation program \"fooBla\": error=2, No such file or directory", ex.getCause().getMessage());
+            assertEquals("Cannot run program \"fooBla\": error=2, No such file or directory", ex.getCause().getMessage());
         }
     }
 

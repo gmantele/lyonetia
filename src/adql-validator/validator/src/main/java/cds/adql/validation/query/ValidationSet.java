@@ -49,7 +49,7 @@ public class ValidationSet implements Iterable<ValidationQuery> {
         if (title == null || title.isBlank())
             throw new NullPointerException("Missing title for the new Validation Set!");
 
-        this.title = Objects.requireNonNull(title);
+        this.title = title;
     }
 
     public String getTitle() {
